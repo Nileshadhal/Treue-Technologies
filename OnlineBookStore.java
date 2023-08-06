@@ -1,0 +1,312 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+
+class Book
+	{
+    private String title;
+    private String author;
+    private String category;
+    private double price;
+    private double rating;
+    private List<String> reviews;
+
+    public Book(String title, String author, String category, double price) {
+        this.title = title;
+        this.author = author;
+        this.category = category;
+        this.price = price;
+        this.rating = 0.0;
+        this.reviews = new ArrayList<>();
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void addReview(String review) {
+        reviews.add(review);
+        calculateRating();
+    }
+
+    private void calculateRating() {
+        if (reviews.isEmpty()) {
+            rating = 0.0;
+        } else {
+            double totalRating = 0.0;
+            for (String review : reviews) {
+                totalRating += Double.parseDouble(review);
+            }
+            rating = totalRating / reviews.size();
+        }
+    }
+}
+
+class User {
+    private String username;
+    private String password;
+    private List<Book> cart;
+    private List<Book> orders;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+        this.cart = new ArrayList<>();
+        this.orders = new ArrayList<>();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public List<Book> getCart() {
+        return cart;
+    }
+
+    public List<Book> getOrders() {
+        return orders;
+    }
+}
+
+class BookStore {
+    private Map<String, Book> books;
+    private Map<String, User> users;
+    private User currentUser;
+
+    public BookStore() {
+        books = new HashMap<>();
+        users = new HashMap<>();
+        currentUser = null;
+    }
+
+    public void addBook(Book book) {
+        books.put(book.getTitle(), book);
+    }
+
+    public void registerUser(String username, String password) {
+        User newUser = new User(username, password);
+        users.put(username, newUser);
+    }
+
+    public boolean login(String username, String password) {
+        User user = users.get(username);
+        if (user != null && user.getPassword().equals(password)) {
+            currentUser = user;
+            return true;
+        }
+        return false;
+    }
+
+    public void logout() {
+    currentUser = null;
+	}
+
+	public Book searchBook(String title) {
+    for (Book book : books.values()) {
+        if (book.getTitle().equalsIgnoreCase(title)) {
+            return book;
+        }
+    }
+    return null; // Book not found
+	}
+
+    public void addToCart(String bookTitle) {
+    Book book = searchBook(bookTitle);
+    if (book != null && currentUser != null) {
+        currentUser.getCart().add(book);
+        System.out.println("Book added to cart!");
+    } else {
+        System.out.println("Book not found or user not logged in!");
+    }
+}
+
+    public void removeFromCart(String bookTitle) {
+    if (currentUser != null) {
+        List<Book> cart = currentUser.getCart();
+        boolean removed = cart.removeIf(book -> book.getTitle().equalsIgnoreCase(bookTitle));
+        if (removed) {
+            System.out.println("Book removed from cart: " + bookTitle);
+        } else {
+            System.out.println("Book not found in the cart.");
+        }
+    } else {
+        System.out.println("Please log in to remove books from the cart.");
+    }
+}
+
+
+    public void displayCart() {
+        System.out.println("Items in the cart:");
+        List<Book> cart = currentUser.getCart();
+        for (Book book : cart) {
+            System.out.println(book.getTitle() + " - " + book.getPrice());
+        }
+    }
+
+    public void checkout() {
+        if (currentUser != null) {
+            List<Book> cart = currentUser.getCart();
+            currentUser.getOrders().addAll(cart);
+            cart.clear();
+            System.out.println("Checkout successful!");
+        }
+    }
+
+    public void displayBooks() {
+        System.out.println("Available books:");
+        for (Book book : books.values()) {
+            System.out.println(book.getTitle() + " by " + book.getAuthor() +
+                    " | Category: " + book.getCategory() + " | Price: " + book.getPrice() +
+                    " | Rating: " + book.getRating());
+        }
+    }
+
+    public void rateAndReviewBook(String bookTitle, String rating, String review) 
+		{
+        Book book = books.get(bookTitle);
+        if (book != null) {
+            book.addReview(rating);
+            System.out.println("Review submitted successfully!");
+        } else {
+            System.out.println("Book not found!");
+        }
+    }
+}
+
+public class OnlineBookStore {
+
+	private static void displayMenu() {
+        System.out.println("\n======= Online Book Store =======");
+        System.out.println("1. User Registration");
+        System.out.println("2. Login");
+        System.out.println("3. Browse Books");
+        System.out.println("4. Search Book");
+        System.out.println("5. Add to Cart");
+        System.out.println("6. Remove from Cart");
+        System.out.println("7. View Cart");
+        System.out.println("8. Checkout");
+        System.out.println("9. Rate and Review Book");
+        System.out.println("10. Logout");
+        System.out.println("11. Exit");
+        System.out.println("===============================");
+    }
+
+    public static void main(String[] args) {
+        BookStore bookStore = new BookStore();
+        // Adding some example books to the store
+        bookStore.addBook(new Book("Title 1", "Author A", "Fiction", 25.99));
+        bookStore.addBook(new Book("Title 2", "Author B", "Science", 29.99));
+        bookStore.addBook(new Book("Title 3", "Author C", "Mystery", 19.99));
+
+        Scanner scanner = new Scanner(System.in);
+        boolean exit = false;
+
+        while (!exit) {
+            displayMenu();
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+
+
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter username: ");
+                    String username = scanner.nextLine();
+                    System.out.print("Enter password: ");
+                    String password = scanner.nextLine();
+                    bookStore.registerUser(username, password);
+                    break;
+                case 2:
+                    System.out.print("Enter username: ");
+                    String loginUsername = scanner.nextLine();
+                    System.out.print("Enter password: ");
+                    String loginPassword = scanner.nextLine();
+                    boolean loggedIn = bookStore.login(loginUsername, loginPassword);
+                    if (loggedIn) {
+                        System.out.println("Login successful!");
+                    } else {
+                        System.out.println("Invalid credentials!");
+                    }
+                    break;
+                case 3:
+                    bookStore.displayBooks();
+                    break;
+                case 4:
+                    System.out.print("Enter book title to search: ");
+					String searchTitle = scanner.nextLine();
+					Book searchedBook = bookStore.searchBook(searchTitle);
+					if (searchedBook != null) {
+						System.out.println("Book found:");
+						System.out.println("Title: " + searchedBook.getTitle());
+						System.out.println("Author: " + searchedBook.getAuthor());
+						System.out.println("Category: " + searchedBook.getCategory());
+						System.out.println("Price: " + searchedBook.getPrice());
+						System.out.println("Rating: " + searchedBook.getRating());
+					} else {
+						System.out.println("Book not found!");
+					}
+                    // Perform search logic
+                    break;
+                case 5:
+                    System.out.print("Enter book title to add to cart: ");
+					String addToCartTitle = scanner.nextLine();
+					bookStore.addToCart(addToCartTitle);
+                    break;
+                case 6:
+                    System.out.print("Enter book title to remove from cart: ");
+                    String removeFromCartTitle = scanner.nextLine();
+                    bookStore.removeFromCart(removeFromCartTitle);
+                    break;
+                case 7:
+                    bookStore.displayCart();
+                    break;
+                case 8:
+                    bookStore.checkout();
+                    break;
+                case 9:
+                    System.out.print("Enter book title to rate and review: ");
+                    String reviewBookTitle = scanner.nextLine();
+                    System.out.print("Enter rating (0.0 to 5.0): ");
+                    String reviewRating = scanner.nextLine();
+                    System.out.print("Enter review: ");
+                    String reviewText = scanner.nextLine();
+                    bookStore.rateAndReviewBook(reviewBookTitle, reviewRating, reviewText);
+                    break;
+                case 10:
+                    bookStore.logout();
+                    System.out.println("Logged out successfully!");
+                    break;
+                case 11:
+                    exit = true;
+                    System.out.println("Goodbye! Thank you for visiting the Online Book Store.");
+                    break;
+                default:
+                    System.out.println("Invalid choice! Please select a valid option.");
+            }
+        }
+    }
+}
